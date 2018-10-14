@@ -442,6 +442,8 @@ class PlotDataItem(GraphicsObject):
         
 
         if y is None:
+            self.updateItems()
+            profiler('update items')
             return
         if y is not None and x is None:
             x = np.arange(len(y))
@@ -525,14 +527,15 @@ class PlotDataItem(GraphicsObject):
             if self.opts['autoDownsample']:
                 # this option presumes that x-values have uniform spacing
                 range = self.viewRect()
-                if range is not None:
+                if range is not None and len(x) > 1:
                     dx = float(x[-1]-x[0]) / (len(x)-1)
-                    x0 = (range.left()-x[0]) / dx
-                    x1 = (range.right()-x[0]) / dx
-                    width = self.getViewBox().width()
-                    if width != 0.0:
-                        ds = int(max(1, int((x1-x0) / (width*self.opts['autoDownsampleFactor']))))
-                    ## downsampling is expensive; delay until after clipping.
+                    if dx != 0.0:
+                        x0 = (range.left()-x[0]) / dx
+                        x1 = (range.right()-x[0]) / dx
+                        width = self.getViewBox().width()
+                        if width != 0.0:
+                            ds = int(max(1, int((x1-x0) / (width*self.opts['autoDownsampleFactor']))))
+                        ## downsampling is expensive; delay until after clipping.
             
             if self.opts['clipToView']:
                 view = self.getViewBox()
